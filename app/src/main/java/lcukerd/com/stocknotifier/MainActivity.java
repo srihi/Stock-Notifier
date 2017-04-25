@@ -49,12 +49,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+    }
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        stock_linearLayout = (LinearLayout) findViewById(R.id.stock_linear);
-        value_linearLayout = (LinearLayout) findViewById(R.id.value_linear);
+
         interact = new DbInteract(this);
         context = this;
 
@@ -96,11 +101,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-    }
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
+        stock_linearLayout = (LinearLayout) findViewById(R.id.stock_linear);
+        value_linearLayout = (LinearLayout) findViewById(R.id.value_linear);
         createList list = new createList();
         list.execute(interact.readtable());
 
@@ -173,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                     calendar.setTimeInMillis(System.currentTimeMillis()+9000000);
                     String currtime = sdf.format(calendar.getTime());
                     Log.d("Current Time",currtime);
-                    jsonObject = jsonObject.getJSONObject("2017-04-24 06:00:00");                   //change here
+                    jsonObject = jsonObject.getJSONObject(currtime);                   //change here
 
                     close = jsonObject.getString("4. close");
 
@@ -242,14 +244,18 @@ public class MainActivity extends AppCompatActivity {
                 stocks.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //call detail view
+                        Intent intent = new Intent(context,detailactivity.class);
+                        intent.putExtra("symbol",stock_name);
+                        startActivity(intent);
                     }
                 });
 
                 value.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //same as above
+                        Intent intent = new Intent(context,detailactivity.class);
+                        intent.putExtra("symbol",stock_name);
+                        startActivity(intent);
                     }
                 });
             }

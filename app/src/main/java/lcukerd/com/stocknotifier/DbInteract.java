@@ -47,4 +47,23 @@ public class DbInteract {
         db.delete(eventDBcontract.ListofItem.tableName, eventDBcontract.ListofItem.columnsym + " = '" + symbol+"'", null);
         Log.d("DbInteract","deleted "+symbol);
     }
+    public void addreqd(String symbol,String reqd)
+    {
+        SQLiteDatabase db = dBcontract.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(eventDBcontract.ListofItem.columnreqd,reqd);
+        db.update(eventDBcontract.ListofItem.tableName,values,eventDBcontract.ListofItem.columnsym + " = ?",new String[]{symbol});
+        Log.d("DbInteract","Required value added");
+    }
+    public String readreqd(String symbol)
+    {
+        SQLiteDatabase db = dBcontract.getWritableDatabase();
+        Cursor cursor = db.query(eventDBcontract.ListofItem.tableName,projection,eventDBcontract.ListofItem.columnsym + " = ?",new String[]{symbol},null,null,null);
+        cursor.moveToFirst();
+        Log.d("DbInteract","Required value read");
+        return cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnreqd));
+    }
+
+
 }
