@@ -21,6 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".detailactivity"></activity>
+        <receiver android:name=".notifer" />
     </application>
 
 </manifest>

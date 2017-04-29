@@ -64,6 +64,13 @@ public class DbInteract {
         Log.d("DbInteract","Required value read");
         return cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnreqd));
     }
-
+    public String readsym(String id)
+    {
+        SQLiteDatabase db = dBcontract.getWritableDatabase();
+        Cursor cursor = db.query(eventDBcontract.ListofItem.tableName,projection,eventDBcontract.ListofItem.columnID + " = ?",new String[]{id},null,null,null);
+        cursor.moveToFirst();
+        Log.d("DbInteract","Required value read");
+        return cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnsym));
+    }
 
 }

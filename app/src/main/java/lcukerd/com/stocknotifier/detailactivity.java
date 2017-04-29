@@ -44,6 +44,7 @@ public class detailactivity extends AppCompatActivity {
         Intent caller = getIntent();
         sym = caller.getStringExtra("symbol");
         setContentView(R.layout.activity_detailactivity);
+        getSupportActionBar().setTitle(sym);
         interact = new DbInteract(this);
         time = (TextView) findViewById(R.id.time);
         close = (TextView) findViewById(R.id.close);
@@ -126,12 +127,12 @@ public class detailactivity extends AppCompatActivity {
                 currtime = sdf.format(calendar.getTime());
                 calendar.setTimeInMillis(System.currentTimeMillis() - i * 60000);
                 showtime = showformat.format(calendar.getTime());
-                Log.d("Current Time", currtime);
+                Log.d("Current Time", currtime + String.valueOf(i));
                 String closeva;
 
                 try {
-                    jsonObject = jsonObject.getJSONObject(currtime);                   //change here
-                    closeva = jsonObject.getString("4. close");
+                    JSONObject tempobj = jsonObject.getJSONObject(currtime);                   //change here
+                    closeva = tempobj.getString("4. close");
                 }
                 catch(JSONException e)
                 {

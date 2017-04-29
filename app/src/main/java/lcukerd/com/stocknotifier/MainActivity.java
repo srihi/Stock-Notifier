@@ -1,6 +1,8 @@
 package lcukerd.com.stocknotifier;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -59,6 +61,12 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Intent callagain = new Intent(this,notifer.class);
+        callagain.putExtra("id",new String[]{"2","3"});
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, callagain, 0);
+        AlarmManager notifalm;
+        notifalm = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+        notifalm.setExact(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),alarmIntent);
 
         interact = new DbInteract(this);
         context = this;
@@ -124,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
             int count=0;
             while(cursors[0].moveToNext())
             {
+                Log.d("Table ",cursors[0].getString(cursors[0].getColumnIndex(eventDBcontract.ListofItem.columnID)));
                 String DATA="",temp;
                 String symbol = cursors[0].getString(cursors[0].getColumnIndex(eventDBcontract.ListofItem.columnsym));
                 String baseAddress="http://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY";
@@ -185,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
                 catch (JSONException e)
                 {
                     Log.e("createList","Error in json",e);
+                    close = "null";
                 }
                 sortedData[count][0]=symbol;
                 sortedData[count++][1]=close;
@@ -274,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_refresh) {
             return true;
         }
 
