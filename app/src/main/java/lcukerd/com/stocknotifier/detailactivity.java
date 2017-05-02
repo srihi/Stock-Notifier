@@ -1,6 +1,9 @@
 package lcukerd.com.stocknotifier;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -9,14 +12,18 @@ import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -33,16 +40,18 @@ import java.util.Calendar;
 
 public class detailactivity extends AppCompatActivity {
 
-    private EditText reqdclose;
     private DbInteract interact;
     private TextView time,close;
     private String sym;
+    private String data;
+    private JSONObject jsonObject;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent caller = getIntent();
         sym = caller.getStringExtra("symbol");
+        data = caller.getStringExtra("data");
         setContentView(R.layout.activity_detailactivity);
         getSupportActionBar().setTitle(sym);
         interact = new DbInteract(this);
@@ -53,19 +62,42 @@ public class detailactivity extends AppCompatActivity {
     protected void onStart()
     {
         super.onStart();
-        reqdclose = (EditText) findViewById(R.id.reqd);
-        String oldvalue = interact.readreqd(sym);
-        if ((oldvalue!=null)&&(oldvalue.equals("")==false))
-            reqdclose.setText(oldvalue);
-        createTable updateTable = new createTable();
-        updateTable.execute(sym);
-    }
-    protected void onStop()
-    {
-        super.onStop();
-        String reqd = reqdclose.getText().toString();
-        if (reqd.equals("")==false)
-            interact.addreqd(sym,reqd);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:00"),showformat = new SimpleDateFormat("hh:mm");
+        String currtime,showtime;
+        try {
+            String List = "Time Series (1min)";
+            jsonObject = new JSONObject(data);
+            jsonObject = jsonObject.getJSONObject(List);
+        } catch (JSONException e) {
+            Log.e("createList", "Error in json", e);
+        }
+        for (int i = 1; i < 11; i++) {
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis() + 9000000 - i * 60000);
+            currtime = sdf.format(calendar.getTime());
+            calendar.setTimeInMillis(System.currentTimeMillis() - i * 60000);
+            showtime = showformat.format(calendar.getTime());
+            Log.d("Current Time", currtime + String.valueOf(i));
+            String closeva;
+
+            try {
+                JSONObject tempobj = jsonObject.getJSONObject(currtime);                   //change here
+                closeva = tempobj.getString("4. close");
+            }
+            catch(JSONException e)
+            {
+                Log.e("createList", "Error in json", e);
+                break;
+            }
+
+            time.append("\n"+showtime);
+            close.append("\n"+closeva);
+        }
+
+        //createTable updateTable = new createTable();
+        //updateTable.execute(sym);
     }
 
     public class createTable extends AsyncTask<String,Void,String> {
@@ -145,4 +177,66 @@ public class detailactivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_detail, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_addreqd) {
+            {
+                showdialog();
+                return true;
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    void showdialog()
+    {
+        AlertDialog.Builder eventName = new AlertDialog.Builder(this,R.style.dialogStyle);
+        LayoutInflater inflater = (LayoutInflater)this.getSystemService (Context.LAYOUT_INFLATER_SERVICE);
+        View dialogb = inflater.inflate(R.layout.dialog_add_reqdva, null);
+        eventName.setView(dialogb);
+        final AlertDialog dialog = eventName.create();
+        dialog.show();
+
+        Button okay =(Button) dialog.findViewById(R.id.dokay),cancel = (Button) dialog.findViewById(R.id.dcancel);
+        final EditText reqdvalue = (EditText) dialog.findViewById(R.id.dreqdvalue);
+
+        TextView left = (TextView) dialog.findViewById(R.id.dleft) ,right = (TextView) dialog.findViewById(R.id.dright);
+        left.setText(">=");
+        right.setText("<=");
+
+        SwitchCompat chooser = (SwitchCompat) dialog.findViewById(R.id.dswitch);
+
+
+        String oldvalue = interact.readreqd(sym);
+        if ((oldvalue!=null)&&(oldvalue.equals("")==false))
+            reqdvalue.setText(oldvalue);
+
+        okay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String reqd = reqdvalue.getText().toString();
+                if (reqd.equals("")==false)
+                    interact.addreqd(sym,reqd);
+                dialog.dismiss();
+            }
+        });
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+    }
+
 }

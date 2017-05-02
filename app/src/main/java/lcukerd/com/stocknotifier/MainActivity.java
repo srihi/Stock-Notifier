@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -44,7 +45,7 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private LinearLayout stock_linearLayout,value_linearLayout;
+    private LinearLayout stock_linearLayout,value_linearLayout,check_linearLayout;
     private DbInteract interact;
     private Context context;
 
@@ -62,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         Intent callagain = new Intent(this,notifer.class);
-        callagain.putExtra("id",new String[]{"2","3"});
+        //callagain.putExtra("id",interact.checked());
         PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, callagain, 0);
         AlarmManager notifalm;
         notifalm = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-        notifalm.setExact(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),alarmIntent);
+        //notifalm.setExact(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),alarmIntent);
 
         interact = new DbInteract(this);
         context = this;
@@ -111,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         });
         stock_linearLayout = (LinearLayout) findViewById(R.id.stock_linear);
         value_linearLayout = (LinearLayout) findViewById(R.id.value_linear);
+        check_linearLayout = (LinearLayout) findViewById(R.id.check_linear);
         createList list = new createList();
         list.execute(interact.readtable());
 
@@ -123,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         private int noOfStocks=0;
         private HttpURLConnection urlconnection = null;
         private URL url;
+        private String DATA[] ;
 
         protected String[][] doInBackground(Cursor[] cursors)
         {
@@ -130,10 +133,12 @@ public class MainActivity extends AppCompatActivity {
             String sortedData[][] = new String[noOfStocks][2];
             String close = new String() ;
             int count=0;
+            DATA = new String[noOfStocks];
             while(cursors[0].moveToNext())
             {
+                DATA[count] = "";
                 Log.d("Table ",cursors[0].getString(cursors[0].getColumnIndex(eventDBcontract.ListofItem.columnID)));
-                String DATA="",temp;
+                String temp;
                 String symbol = cursors[0].getString(cursors[0].getColumnIndex(eventDBcontract.ListofItem.columnsym));
                 String baseAddress="http://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY";
                 String apiKey="J63P";
@@ -161,10 +166,10 @@ public class MainActivity extends AppCompatActivity {
 
                     while((temp = reader.readLine())!=null)
                     {
-                        DATA += temp;
+                        DATA[count] += temp;
                     }
 
-                    Log.d("unedited",DATA);
+                    Log.d("unedited",DATA[count]);
 
 
                 }
@@ -177,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String List = "Time Series (1min)";
 
-                    JSONObject jsonObject = new JSONObject(DATA);
+                    JSONObject jsonObject = new JSONObject(DATA[count]);
                     jsonObject = jsonObject.getJSONObject(List);
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:00");
                     Calendar calendar = Calendar.getInstance();
@@ -193,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 catch (JSONException e)
                 {
-                    Log.e("createList","Error in json",e);
+                    Log.e("createList","Error in json");
                     close = "null";
                 }
                 sortedData[count][0]=symbol;
@@ -203,71 +208,87 @@ public class MainActivity extends AppCompatActivity {
             return sortedData;
         }
 
-        protected void onPostExecute(String[][] data)
+        protected void onPostExecute(final String[][] data)
         {
             Button stocks,value;
 
             for (int i=0;i<noOfStocks;i++)
             {
-                final String stock_name = data[i][0];
-                String stock_cur = data[i][1];
-                stocks = new Button(context);
-                stocks.setGravity(View.TEXT_DIRECTION_LTR);
-                stocks.setText("  " + stock_name);
-                stocks.setTextSize(14);
-                stocks.setBackgroundColor(Color.rgb(224, 224, 224));
-                stocks.setTextColor(Color.rgb(0,0,0));
-                stock_linearLayout.addView(stocks);
+                try {
+                    final String stock_name = data[i][0];
+                    String stock_cur = data[i][1];
+                    stocks = new Button(context);
+                    stocks.setGravity(View.TEXT_DIRECTION_LTR);
+                    stocks.setText("  " + stock_name);
+                    stocks.setTextSize(14);
+                    stocks.setBackgroundColor(Color.rgb(224, 224, 224));
+                    stocks.setTextColor(Color.rgb(0, 0, 0));
+                    stock_linearLayout.addView(stocks);
 
-                value = new Button(context);
-                value.setGravity(View.TEXT_DIRECTION_LTR);
-                value.setText("  " + stock_cur);
-                value.setTextSize(14);
-                value.setBackgroundColor(Color.rgb(224, 224, 224));
-                value.setTextColor(Color.rgb(0,0,0));
-                value_linearLayout.addView(value);
+                    value = new Button(context);
+                    value.setGravity(View.TEXT_DIRECTION_LTR);
+                    value.setText("  " + stock_cur);
+                    value.setTextSize(14);
+                    value.setBackgroundColor(Color.rgb(224, 224, 224));
+                    value.setTextColor(Color.rgb(0, 0, 0));
+                    value_linearLayout.addView(value);
 
-                stocks.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                        View layout = inflater.inflate(R.layout.popup, (ViewGroup) findViewById(R.id.pop));
-                        PopupWindow pw = new PopupWindow(layout, 400, 200, true);
-                        int coord[] = new int[2];
-                        v.getLocationOnScreen(coord);
-                        pw.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent)));
-                        pw.setOutsideTouchable(true);
-                        pw.showAtLocation(v, Gravity.NO_GRAVITY, coord[0] + 50, coord[1]+50);
-                        Button del = (Button) layout.findViewById(R.id.del);
-                        del.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                interact.deleteSym(stock_name);
-                                recreate();
-                            }
-                        });
+                    stocks.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
+                            View layout = inflater.inflate(R.layout.popup, (ViewGroup) findViewById(R.id.pop));
+                            PopupWindow pw = new PopupWindow(layout, 400, 200, true);
+                            int coord[] = new int[2];
+                            v.getLocationOnScreen(coord);
+                            pw.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent)));
+                            pw.setOutsideTouchable(true);
+                            pw.showAtLocation(v, Gravity.NO_GRAVITY, coord[0] + 50, coord[1] + 50);
+                            Button del = (Button) layout.findViewById(R.id.del);
+                            del.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    interact.deleteSym(stock_name);
+                                    recreate();
+                                }
+                            });
 
-                        return true;
-                    }
-                });
+                            return true;
+                        }
+                    });
+                    final int j = i;
+                    stocks.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(context, detailactivity.class);
+                            intent.putExtra("symbol", stock_name);
+                            intent.putExtra("data", DATA[j]);
+                            startActivity(intent);
+                        }
+                    });
 
-                stocks.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(context,detailactivity.class);
-                        intent.putExtra("symbol",stock_name);
-                        startActivity(intent);
-                    }
-                });
-
-                value.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(context,detailactivity.class);
-                        intent.putExtra("symbol",stock_name);
-                        startActivity(intent);
-                    }
-                });
+                    value.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(context, detailactivity.class);
+                            intent.putExtra("symbol", stock_name);
+                            intent.putExtra("data", DATA[j]);
+                            startActivity(intent);
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    Log.e("Main","Unable to connect");
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setMessage("Cannot connect to server!")
+                            .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    finish();
+                                }
+                            });
+                    builder.create().show();
+                }
             }
         }
     }

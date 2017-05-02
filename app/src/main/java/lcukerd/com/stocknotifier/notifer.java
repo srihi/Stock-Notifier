@@ -43,16 +43,18 @@ public class notifer extends WakefulBroadcastReceiver{
         Log.d("Notifier","started");
         String id[] = intent.getStringArrayExtra("id");
 
-        context = contextn;
-        backgroundsync back = new backgroundsync();
-        back.execute(id);
+        if (id.length!=0) {
+            context = contextn;
+            backgroundsync back = new backgroundsync();
+            back.execute(id);
 
-        Intent callagain = new Intent(context,notifer.class);
-        callagain.putExtra("id",id);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, callagain, 0);
-        AlarmManager notifalm;
-        notifalm = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        notifalm.setExact(AlarmManager.RTC_WAKEUP,System.currentTimeMillis() + 60000,alarmIntent);
+            Intent callagain = new Intent(context, notifer.class);
+            callagain.putExtra("id", id);
+            PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, callagain, 0);
+            AlarmManager notifalm;
+            notifalm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            notifalm.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, alarmIntent);
+        }
     }
 
     class backgroundsync extends AsyncTask<String[],Void,Void>
@@ -110,7 +112,7 @@ public class notifer extends WakefulBroadcastReceiver{
                     jsonObject = jsonObject.getJSONObject(List);
                 }
                 catch (JSONException e) {
-                    Log.e("createList", "Error in json", e);
+                    Log.e("createList", "Error in json");
                 }
 
                 Calendar calendar = Calendar.getInstance();
