@@ -20,7 +20,8 @@ public class eventDBcontract extends SQLiteOpenHelper {
                     ListofItem.columnID + " INTEGER PRIMARY KEY," +
                     ListofItem.columnstock + " TEXT, " +
                     ListofItem.columnsym + " TEXT, " +
-                    ListofItem.columnreqd + " REAL );";
+                    ListofItem.columnreqd + " REAL," +
+                    ListofItem.columnchecked + " INTEGER );";
 
     public static int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "StockReciever.db";
@@ -45,6 +46,7 @@ public class eventDBcontract extends SQLiteOpenHelper {
                 columnID="ID",
                 columnstock="Name_of_company",
                 columnsym="Symbol",
-                columnreqd="Required_value";
+                columnreqd="Required_value",
+                columnchecked="isChecked";
     }
 }

@@ -21,7 +21,16 @@
             </intent-filter>
         </activity>
         <activity android:name=".detailactivity"></activity>
+
         <receiver android:name=".notifer" />
+
+        <receiver android:name=".startonBoot"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

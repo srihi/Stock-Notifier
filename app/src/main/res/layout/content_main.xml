@@ -30,7 +30,7 @@
         </LinearLayout>
         <LinearLayout
             android:id="@+id/check_linear"
-            android:layout_width="40dp"
+            android:layout_width="80dp"
             android:layout_height="match_parent"
             android:orientation="vertical">
 

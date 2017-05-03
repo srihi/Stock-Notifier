@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.Switch;
@@ -72,7 +73,7 @@ public class detailactivity extends AppCompatActivity {
         } catch (JSONException e) {
             Log.e("createList", "Error in json", e);
         }
-        for (int i = 1; i < 11; i++) {
+        for (int i = 1; i < 30; i++) {
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(System.currentTimeMillis() + 9000000 - i * 60000);
@@ -215,17 +216,31 @@ public class detailactivity extends AppCompatActivity {
         left.setText(">=");
         right.setText("<=");
 
-        SwitchCompat chooser = (SwitchCompat) dialog.findViewById(R.id.dswitch);
+        final SwitchCompat chooser = (SwitchCompat) dialog.findViewById(R.id.dswitch);
 
 
         String oldvalue = interact.readreqd(sym);
         if ((oldvalue!=null)&&(oldvalue.equals("")==false))
+        {
+            float oldvaluef = Float.parseFloat(oldvalue);
+            if (oldvaluef<0)
+            {
+                chooser.setChecked(true);
+                oldvalue = String.valueOf(0-oldvaluef);
+            }
+            else
+            {
+                chooser.setChecked(false);
+            }
             reqdvalue.setText(oldvalue);
+        }
 
         okay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String reqd = reqdvalue.getText().toString();
+                if (chooser.isChecked())
+                    reqd = "-"+reqd;
                 if (reqd.equals("")==false)
                     interact.addreqd(sym,reqd);
                 dialog.dismiss();

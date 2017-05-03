@@ -16,7 +16,8 @@ public class DbInteract {
     private String[] projection = {eventDBcontract.ListofItem.columnID,
             eventDBcontract.ListofItem.columnstock,
             eventDBcontract.ListofItem.columnsym,
-            eventDBcontract.ListofItem.columnreqd
+            eventDBcontract.ListofItem.columnreqd,
+            eventDBcontract.ListofItem.columnchecked
     };
     DbInteract(Context context)
     {
@@ -26,7 +27,7 @@ public class DbInteract {
     public Cursor readtable()
     {
         SQLiteDatabase db = dBcontract.getReadableDatabase();
-        Cursor cursor = db.query(eventDBcontract.ListofItem.tableName,projection,null,null,null,null,null);
+        Cursor cursor = db.query(eventDBcontract.ListofItem.tableName,projection,null,null,null,null,eventDBcontract.ListofItem.columnsym+" ASC");
         /*while (cursor.moveToNext())
             Log.d("DbInteract",cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnsym)));
         */
@@ -38,6 +39,7 @@ public class DbInteract {
         ContentValues values = new ContentValues();
 
         values.put(eventDBcontract.ListofItem.columnsym,symbol);
+        values.put(eventDBcontract.ListofItem.columnchecked,"0");
         db.insert(eventDBcontract.ListofItem.tableName,null,values);
         Log.d("DbInteract","Symbol added");
     }
@@ -71,6 +73,49 @@ public class DbInteract {
         cursor.moveToFirst();
         Log.d("DbInteract","Required value read");
         return cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnsym));
+    }
+    public String[] checked()
+    {
+        SQLiteDatabase db = dBcontract.getReadableDatabase();
+        Cursor cursor = db.query(eventDBcontract.ListofItem.tableName,projection,null,null,null,null,eventDBcontract.ListofItem.columnsym+" ASC");
+        String checkedones[] = new String[cursor.getCount()];
+        int count=0;
+        while (cursor.moveToNext())
+        {
+            String ischecked = cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnchecked));
+            if (ischecked.equals("1"))
+            {
+                Log.d("DbInteract",cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnsym)));
+                checkedones[count] =  cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnID));
+                count++;
+            }
+
+        }
+        String checkreturn[] = new String[count];
+        for (int i=0;i<count;i++)
+            checkreturn[i] = checkedones[i];
+
+        return checkreturn;
+    }
+    public Boolean ischecked(String symbol)
+    {
+        SQLiteDatabase db = dBcontract.getWritableDatabase();
+        Cursor cursor = db.query(eventDBcontract.ListofItem.tableName,projection,eventDBcontract.ListofItem.columnsym + " = ?",new String[]{symbol},null,null,null);
+        cursor.moveToFirst();
+        Log.d("DbInteract","Reading checked state");
+        if (cursor.getString(cursor.getColumnIndex(eventDBcontract.ListofItem.columnchecked)).equals("1"))
+            return true;
+        else
+            return false;
+    }
+    public void check(String symbol,String state)
+    {
+        SQLiteDatabase db = dBcontract.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(eventDBcontract.ListofItem.columnchecked,state);
+        db.update(eventDBcontract.ListofItem.tableName,values,eventDBcontract.ListofItem.columnsym + " = ?",new String[]{symbol});
+        Log.d("DbInteract","Check added");
     }
 
 }

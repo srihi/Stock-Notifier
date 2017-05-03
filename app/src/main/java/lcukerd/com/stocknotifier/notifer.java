@@ -4,14 +4,12 @@ import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
+import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
@@ -38,21 +36,30 @@ public class notifer extends WakefulBroadcastReceiver{
     private Context context;
 
     @Override
-    public void onReceive(Context contextn,Intent intent)
+    public void onReceive(final Context contextn, final Intent intent)
     {
         Log.d("Notifier","started");
         String id[] = intent.getStringArrayExtra("id");
+        Log.d("notifier",String.valueOf(id.length));
 
-        if (id.length!=0) {
+        if (id!=null) {
             context = contextn;
             backgroundsync back = new backgroundsync();
             back.execute(id);
 
-            Intent callagain = new Intent(context, notifer.class);
+            /*final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    onReceive(contextn,intent);
+                }
+            }, 10000);*/
+
+            Intent callagain = new Intent(contextn, notifer.class);
             callagain.putExtra("id", id);
-            PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, callagain, 0);
+            PendingIntent alarmIntent = PendingIntent.getBroadcast(contextn, 0, callagain, PendingIntent.FLAG_CANCEL_CURRENT);
             AlarmManager notifalm;
-            notifalm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            notifalm = (AlarmManager) contextn.getSystemService(Context.ALARM_SERVICE);
             notifalm.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, alarmIntent);
         }
     }
@@ -78,7 +85,7 @@ public class notifer extends WakefulBroadcastReceiver{
                         .appendQueryParameter("interval", "1min")
                         .appendQueryParameter("apikey", apiKey)
                         .build();
-                Log.d("built URL", Url.toString());
+                Log.d("Notifier", Url.toString());
 
                 try {
                     url = new URL(Url.toString());
@@ -116,30 +123,43 @@ public class notifer extends WakefulBroadcastReceiver{
                 }
 
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(System.currentTimeMillis() + 9000000 * 60000);
+                calendar.setTimeInMillis(System.currentTimeMillis() + 9000000 - i* 60000);
                 currtime = sdf.format(calendar.getTime());
                 Float closeva;
 
                 try {
                     JSONObject tempobj = jsonObject.getJSONObject(currtime);                   //change here
                     closeva = Float.parseFloat(tempobj.getString("4. close"));
-                    if (closeva < Float.parseFloat(interact.readreqd(symbol)))
-                        showNotification(context,closeva,symbol);
+                    float reqdcloseva = Float.parseFloat(interact.readreqd(symbol));
+                    if (reqdcloseva < 0)
+                    {
+                        if (closeva <= (0-reqdcloseva))
+                            showNotification(context, closeva, symbol,"low");
+                    }
+                    else
+                    {
+                        if (closeva >= reqdcloseva)
+                            showNotification(context, closeva, symbol,"high");
+                    }
                 }
                 catch(JSONException e)
                 {
                     Log.e("createList", "Error in json", e);
                 }
+                catch (NullPointerException e)
+                {
+                    Log.e("createList","no reqd symbol");
+                }
 
             }
             return null;
         }
-        void showNotification(Context context,Float closeva,String symbol)
+        void showNotification(Context context,Float closeva,String symbol,String state)
         {
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context)
-                            //.setSmallIcon(R.drawable.notification_img)
-                            .setContentTitle(symbol + " price is low : " + String.valueOf(closeva));
+                            .setSmallIcon(R.drawable.notif_icon)
+                            .setContentTitle(symbol + " price is " + state + " : " + String.valueOf(closeva));
             mBuilder.setAutoCancel(true);
             Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             mBuilder.setSound(alarmSound);

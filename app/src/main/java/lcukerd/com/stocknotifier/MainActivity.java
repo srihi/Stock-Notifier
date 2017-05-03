@@ -3,9 +3,11 @@ package lcukerd.com.stocknotifier;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -26,6 +28,8 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -48,10 +52,18 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout stock_linearLayout,value_linearLayout,check_linearLayout;
     private DbInteract interact;
     private Context context;
+    private PendingIntent alarmIntent;
+    private AlarmManager notifalm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ComponentName receiver = new ComponentName(this, startonBoot.class);
+        PackageManager pm = this.getPackageManager();
+
+        pm.setComponentEnabledSetting(receiver,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
 
     }
     @Override
@@ -62,15 +74,11 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Intent callagain = new Intent(this,notifer.class);
-        //callagain.putExtra("id",interact.checked());
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, callagain, 0);
-        AlarmManager notifalm;
-        notifalm = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-        //notifalm.setExact(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),alarmIntent);
-
         interact = new DbInteract(this);
         context = this;
+
+        notifalm = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+        setalarm();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -116,6 +124,21 @@ public class MainActivity extends AppCompatActivity {
         createList list = new createList();
         list.execute(interact.readtable());
 
+    }
+
+    private void setalarm()
+    {
+        Intent callagain = new Intent(context,notifer.class);
+        String ids[]=interact.checked();
+        for (int i=0;i<ids.length;i++)
+            Log.d("Main checked new",ids[i]);
+        callagain.putExtra("id", ids);
+        alarmIntent = PendingIntent.getBroadcast(context, 0, callagain, PendingIntent.FLAG_CANCEL_CURRENT);
+        notifalm.setExact(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),alarmIntent);
+    }
+    private void cancelalarm()
+    {
+        notifalm.cancel(alarmIntent);
     }
 
 
@@ -211,12 +234,13 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(final String[][] data)
         {
             Button stocks,value;
+            CheckBox keepeye;
 
             for (int i=0;i<noOfStocks;i++)
             {
                 try {
                     final String stock_name = data[i][0];
-                    String stock_cur = data[i][1];
+                    final String stock_cur = data[i][1];
                     stocks = new Button(context);
                     stocks.setGravity(View.TEXT_DIRECTION_LTR);
                     stocks.setText("  " + stock_name);
@@ -232,6 +256,29 @@ public class MainActivity extends AppCompatActivity {
                     value.setBackgroundColor(Color.rgb(224, 224, 224));
                     value.setTextColor(Color.rgb(0, 0, 0));
                     value_linearLayout.addView(value);
+
+                    keepeye = new CheckBox(context);
+                    if (interact.ischecked(stock_name)==true)
+                        keepeye.setChecked(true);
+                    keepeye.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (((CheckBox)v).isChecked()==true)
+                            {
+                                cancelalarm();
+                                interact.check(stock_name,"1");
+                                Log.d("main","checked");
+                            }
+                            else
+                            {
+                                cancelalarm();
+                                interact.check(stock_name,"0");
+                                Log.d("main","unchecked");
+                            }
+                            setalarm();
+                        }
+                    });
+                    check_linearLayout.addView(keepeye);
 
                     stocks.setOnLongClickListener(new View.OnLongClickListener() {
                         @Override
