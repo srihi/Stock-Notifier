@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,20 +41,11 @@ public class notifer extends WakefulBroadcastReceiver{
     {
         Log.d("Notifier","started");
         String id[] = intent.getStringArrayExtra("id");
-        Log.d("notifier",String.valueOf(id.length));
 
         if (id!=null) {
             context = contextn;
             backgroundsync back = new backgroundsync();
             back.execute(id);
-
-            /*final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    onReceive(contextn,intent);
-                }
-            }, 10000);*/
 
             Intent callagain = new Intent(contextn, notifer.class);
             callagain.putExtra("id", id);
@@ -74,6 +66,8 @@ public class notifer extends WakefulBroadcastReceiver{
             URL url;
             DbInteract interact = new DbInteract(context);
             HttpURLConnection urlconnection = null;
+            FileOutputStream outputStream;
+
 
             for (int i=0;i<id[0].length;i++) {
                 String temp, DATA = "";
@@ -95,7 +89,7 @@ public class notifer extends WakefulBroadcastReceiver{
 
                     InputStream inputStream = urlconnection.getInputStream();
                     if (inputStream == null) {
-                        Log.d("inputstream", "empty");
+                        Log.e("inputstream", "empty");
                         continue;
                     }
                     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -104,6 +98,9 @@ public class notifer extends WakefulBroadcastReceiver{
                         DATA += temp;
                     }
                     Log.d("unedited", DATA);
+                    outputStream = context.openFileOutput(symbol, Context.MODE_PRIVATE);
+                    outputStream.write(DATA.getBytes());
+                    outputStream.close();
                 }
                 catch (IOException e) {
                     Log.e("createList", "Error in url ", e);
@@ -144,7 +141,7 @@ public class notifer extends WakefulBroadcastReceiver{
                 }
                 catch(JSONException e)
                 {
-                    Log.e("createList", "Error in json", e);
+                    Log.e("createList", "Error in json");
                 }
                 catch (NullPointerException e)
                 {
@@ -158,7 +155,7 @@ public class notifer extends WakefulBroadcastReceiver{
         {
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context)
-                            .setSmallIcon(R.drawable.notif_icon)
+                            .setSmallIcon(R.drawable.ic_trending_up_black_24dp)
                             .setContentTitle(symbol + " price is " + state + " : " + String.valueOf(closeva));
             mBuilder.setAutoCancel(true);
             Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

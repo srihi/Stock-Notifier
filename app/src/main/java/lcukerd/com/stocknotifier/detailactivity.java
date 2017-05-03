@@ -46,6 +46,7 @@ public class detailactivity extends AppCompatActivity {
     private String sym;
     private String data;
     private JSONObject jsonObject;
+    private String price;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +87,10 @@ public class detailactivity extends AppCompatActivity {
             try {
                 JSONObject tempobj = jsonObject.getJSONObject(currtime);                   //change here
                 closeva = tempobj.getString("4. close");
+                if (i==1)
+                {
+                    price=closeva;
+                }
             }
             catch(JSONException e)
             {
@@ -215,6 +220,16 @@ public class detailactivity extends AppCompatActivity {
         TextView left = (TextView) dialog.findViewById(R.id.dleft) ,right = (TextView) dialog.findViewById(R.id.dright);
         left.setText(">=");
         right.setText("<=");
+
+        TextView symbolw = (TextView) dialog.findViewById(R.id.dsymbol);
+        symbolw.setText(sym);
+
+        TextView pricew = (TextView) dialog.findViewById(R.id.dprice);
+        if (price!=null)
+           pricew.setText(price);
+        else
+            pricew.setText("null");
+
 
         final SwitchCompat chooser = (SwitchCompat) dialog.findViewById(R.id.dswitch);
 

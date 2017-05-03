@@ -33,6 +33,13 @@ public class DbInteract {
         */
         return cursor;
     }
+    public Cursor returnSymCur(String symbol)
+    {
+        SQLiteDatabase db = dBcontract.getWritableDatabase();
+        Cursor cursor = db.query(eventDBcontract.ListofItem.tableName,projection,eventDBcontract.ListofItem.columnsym + " = ?",new String[]{symbol},null,null,null);
+        Log.d("DbInteract","Returned cursor containing " + symbol );
+        return cursor;
+    }
     public void addSymbol(String symbol)
     {
         SQLiteDatabase db = dBcontract.getWritableDatabase();
