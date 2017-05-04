@@ -163,7 +163,8 @@ public class MainActivity extends AppCompatActivity {
             String sortedData[][] = new String[noOfStocks][2];
             String close = new String() ;
             int count=0;
-            cursortemp = cursors[0];
+            if (cursors[0]!=null)
+                cursortemp = cursors[0];
             DATA = new String[noOfStocks];
             while(cursors[0].moveToNext())
             {
@@ -232,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
                     keepeye = new CheckBox(context);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    params.setMargins(0,0,0,23);
+                    params.setMargins(0,0,0,48);
                     keepeye.setLayoutParams(params);
                     if (interact.ischecked(stock_name)==true)
                         keepeye.setChecked(true);
@@ -282,16 +283,15 @@ public class MainActivity extends AppCompatActivity {
                 displaychecked=false;
                 list = new createList[cursortemp.getCount()+1];
                 int i=0;
-                cursortemp.moveToFirst();
-                do
-                {
-                    if (cursortemp.getString(cursortemp.getColumnIndex(eventDBcontract.ListofItem.columnchecked)).equals("0"))
-                    {
-                        showstockname(cursortemp.getString(cursortemp.getColumnIndex(eventDBcontract.ListofItem.columnsym)));
-                        list[i] = new createList();
-                        list[i++].execute(interact.returnSymCur(cursortemp.getString(cursortemp.getColumnIndex(eventDBcontract.ListofItem.columnsym))));
-                    }
-                }while (cursortemp.moveToNext());
+                if (cursortemp.moveToFirst()) {
+                    do {
+                        if (cursortemp.getString(cursortemp.getColumnIndex(eventDBcontract.ListofItem.columnchecked)).equals("0")) {
+                            showstockname(cursortemp.getString(cursortemp.getColumnIndex(eventDBcontract.ListofItem.columnsym)));
+                            list[i] = new createList();
+                            list[i++].execute(interact.returnSymCur(cursortemp.getString(cursortemp.getColumnIndex(eventDBcontract.ListofItem.columnsym))));
+                        }
+                    } while (cursortemp.moveToNext());
+                }
             }
         }
         private int retrievefromnet(int count,String symbol)
