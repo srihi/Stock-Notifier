@@ -26,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by Programmer on 29-04-2017.
@@ -47,12 +48,24 @@ public class notifer extends WakefulBroadcastReceiver{
             backgroundsync back = new backgroundsync();
             back.execute(id);
 
+            Calendar c =Calendar.getInstance();
+
+            Log.d("Calender",String.valueOf(c.get(Calendar.HOUR_OF_DAY)));
             Intent callagain = new Intent(contextn, notifer.class);
             callagain.putExtra("id", id);
             PendingIntent alarmIntent = PendingIntent.getBroadcast(contextn, 0, callagain, PendingIntent.FLAG_CANCEL_CURRENT);
             AlarmManager notifalm;
             notifalm = (AlarmManager) contextn.getSystemService(Context.ALARM_SERVICE);
-            notifalm.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, alarmIntent);
+            if (c.get(Calendar.HOUR_OF_DAY)<16)
+                notifalm.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, alarmIntent);
+            else
+            {
+                c.add(Calendar.DAY_OF_MONTH,1);
+                c.set(Calendar.HOUR_OF_DAY,9);
+                c.set(Calendar.MINUTE,0);
+                Log.d("Calender",String.valueOf(c.getTimeInMillis()));
+                notifalm.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), alarmIntent);
+            }
         }
     }
 
@@ -131,12 +144,12 @@ public class notifer extends WakefulBroadcastReceiver{
                     if (reqdcloseva < 0)
                     {
                         if (closeva <= (0-reqdcloseva))
-                            showNotification(context, closeva, symbol,"low");
+                            showNotification(context, closeva, symbol,"low",DATA);
                     }
                     else
                     {
                         if (closeva >= reqdcloseva)
-                            showNotification(context, closeva, symbol,"high");
+                            showNotification(context, closeva, symbol,"high",DATA);
                     }
                 }
                 catch(JSONException e)
@@ -151,7 +164,7 @@ public class notifer extends WakefulBroadcastReceiver{
             }
             return null;
         }
-        void showNotification(Context context,Float closeva,String symbol,String state)
+        void showNotification(Context context,Float closeva,String symbol,String state,String DATA)
         {
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context)
@@ -162,6 +175,7 @@ public class notifer extends WakefulBroadcastReceiver{
             mBuilder.setSound(alarmSound);
             Intent resultIntent = new Intent(context, detailactivity.class);
             resultIntent.putExtra("symbol",symbol);
+            resultIntent.putExtra("data",DATA);
 
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
             stackBuilder.addParentStack(detailactivity.class);
@@ -174,7 +188,8 @@ public class notifer extends WakefulBroadcastReceiver{
             mBuilder.setContentIntent(resultPendingIntent);
             NotificationManager mNotificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.notify(5, mBuilder.build());
+            int m = (int) ((new Date().getTime() / 1000L) % Integer.MAX_VALUE);
+            mNotificationManager.notify(m, mBuilder.build());
         }
 
     }

@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop()
     {
         super.onStop();
-        for (int i=0;list[i]!=null;i++)
+        for (int i=0;(list[i]!=null)&&(i<interact.readtable().getCount());i++)
             list[i].cancel(true);
     }
 
@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
             if (displaychecked==true)
             {
                 displaychecked=false;
-                list = new createList[cursortemp.getCount()];
+                list = new createList[cursortemp.getCount()+1];
                 int i=0;
                 cursortemp.moveToFirst();
                 do
