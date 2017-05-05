@@ -121,7 +121,7 @@ public class notifer extends WakefulBroadcastReceiver{
                 }
 
                 JSONObject jsonObject = null;
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:00");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:00");
                 String currtime;
                 try {
                     String List = "Time Series (1min)";
@@ -133,7 +133,7 @@ public class notifer extends WakefulBroadcastReceiver{
                 }
 
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(System.currentTimeMillis() + 9000000 - i* 60000);
+                calendar.setTimeInMillis(System.currentTimeMillis() - 34200000 );
                 currtime = sdf.format(calendar.getTime());
                 Float closeva;
 

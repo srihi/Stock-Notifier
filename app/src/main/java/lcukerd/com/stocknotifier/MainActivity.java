@@ -80,44 +80,6 @@ public class MainActivity extends AppCompatActivity {
         notifalm = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         setalarm();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder eventName = new AlertDialog.Builder(context,R.style.dialogStyle);
-                LayoutInflater inflater = (LayoutInflater)context.getSystemService (Context.LAYOUT_INFLATER_SERVICE);
-                View dialogb = inflater.inflate(R.layout.dialog_add_name, null);
-                eventName.setView(dialogb);
-                final AlertDialog dialog = eventName.create();
-                dialog.show();
-                final InputMethodManager imm = (InputMethodManager)   getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-
-                Button okay =(Button) dialog.findViewById(R.id.okay),cancel = (Button) dialog.findViewById(R.id.cancel);
-                final EditText nameOfEvent = (EditText) dialog.findViewById(R.id.eventName);
-
-                okay.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String newEntry = nameOfEvent.getText().toString();
-                        nameOfEvent.clearFocus();
-                        imm.hideSoftInputFromWindow(nameOfEvent.getWindowToken(), 0);
-                        dialog.dismiss();
-                        interact.addSymbol(newEntry);
-                        recreate();
-                    }
-                });
-                cancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        nameOfEvent.clearFocus();
-                        imm.hideSoftInputFromWindow(nameOfEvent.getWindowToken(), 0);
-                        dialog.dismiss();
-                    }
-                });
-
-            }
-        });
         stock_linearLayout = (LinearLayout) findViewById(R.id.stock_linear);
         value_linearLayout = (LinearLayout) findViewById(R.id.value_linear);
         check_linearLayout = (LinearLayout) findViewById(R.id.check_linear);
@@ -190,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
                         while ((temp = reader.readLine()) != null) {
                             DATA[count] += temp;
                         }
+                        Log.d("DATa Main",DATA[count]);
                     }
                     catch (FileNotFoundException e)
                     {
@@ -336,10 +299,11 @@ public class MainActivity extends AppCompatActivity {
 
                 JSONObject jsonObject = new JSONObject(DATA[count]);
                 jsonObject = jsonObject.getJSONObject(List);
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:00");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:00");
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(System.currentTimeMillis() + 9000000);
+                calendar.setTimeInMillis(System.currentTimeMillis() - 34200000 );
                 String currtime = sdf.format(calendar.getTime());
+                Log.d("currtime",currtime);
                 jsonObject = jsonObject.getJSONObject(currtime);
 
                 return jsonObject.getString("4. close");
@@ -407,7 +371,38 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_refresh) {
+        if (id == R.id.action_add) {
+            AlertDialog.Builder eventName = new AlertDialog.Builder(context,R.style.dialogStyle);
+            LayoutInflater inflater = (LayoutInflater)context.getSystemService (Context.LAYOUT_INFLATER_SERVICE);
+            View dialogb = inflater.inflate(R.layout.dialog_add_name, null);
+            eventName.setView(dialogb);
+            final AlertDialog dialog = eventName.create();
+            dialog.show();
+            final InputMethodManager imm = (InputMethodManager)   getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+
+            Button okay =(Button) dialog.findViewById(R.id.okay),cancel = (Button) dialog.findViewById(R.id.cancel);
+            final EditText nameOfEvent = (EditText) dialog.findViewById(R.id.eventName);
+
+            okay.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String newEntry = nameOfEvent.getText().toString();
+                    nameOfEvent.clearFocus();
+                    imm.hideSoftInputFromWindow(nameOfEvent.getWindowToken(), 0);
+                    dialog.dismiss();
+                    interact.addSymbol(newEntry);
+                    recreate();
+                }
+            });
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    nameOfEvent.clearFocus();
+                    imm.hideSoftInputFromWindow(nameOfEvent.getWindowToken(), 0);
+                    dialog.dismiss();
+                }
+            });
             return true;
         }
 

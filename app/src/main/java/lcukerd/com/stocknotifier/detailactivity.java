@@ -65,7 +65,7 @@ public class detailactivity extends AppCompatActivity {
     {
         super.onStart();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:00"),showformat = new SimpleDateFormat("hh:mm");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:00"),showformat = new SimpleDateFormat("hh:mm");
         String currtime,showtime;
         try {
             String List = "Time Series (1min)";
@@ -74,10 +74,10 @@ public class detailactivity extends AppCompatActivity {
         } catch (JSONException e) {
             Log.e("createList", "Error in json", e);
         }
-        for (int i = 1; i < 30; i++) {
+        for (int i = 0; i < 10; i++) {
 
             Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis() + 9000000 - i * 60000);
+            calendar.setTimeInMillis(System.currentTimeMillis() - 34200000  - i * 60000);
             currtime = sdf.format(calendar.getTime());
             calendar.setTimeInMillis(System.currentTimeMillis() - i * 60000);
             showtime = showformat.format(calendar.getTime());
