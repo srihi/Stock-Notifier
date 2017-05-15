@@ -23,7 +23,14 @@
         </LinearLayout>
         <LinearLayout
             android:id="@+id/value_linear"
-            android:layout_width="180dp"
+            android:layout_width="90dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/reqd_value_linear"
+            android:layout_width="90dp"
             android:layout_height="match_parent"
             android:orientation="vertical">
 

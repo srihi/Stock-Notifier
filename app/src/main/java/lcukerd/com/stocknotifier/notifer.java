@@ -1,14 +1,17 @@
 package lcukerd.com.stocknotifier;
 
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaScannerConnection;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
@@ -18,7 +21,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,6 +32,8 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import static android.R.attr.mimeType;
 
 /**
  * Created by Programmer on 29-04-2017.
@@ -111,12 +118,12 @@ public class notifer extends WakefulBroadcastReceiver{
                         DATA += temp;
                     }
                     Log.d("unedited", DATA);
-                    outputStream = context.openFileOutput(symbol, Context.MODE_PRIVATE);
+                    outputStream = context.openFileOutput(symbol, context.MODE_PRIVATE);
                     outputStream.write(DATA.getBytes());
                     outputStream.close();
                 }
                 catch (IOException e) {
-                    Log.e("createList", "Error in url ", e);
+                    Log.e("Notifier", "Error in url ", e);
                     continue;
                 }
 
@@ -129,36 +136,60 @@ public class notifer extends WakefulBroadcastReceiver{
                     jsonObject = jsonObject.getJSONObject(List);
                 }
                 catch (JSONException e) {
-                    Log.e("createList", "Error in json");
+                    Log.e("Notifier", "Error in json");
                 }
 
                 Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(System.currentTimeMillis() - 34200000 );
+                calendar.setTimeInMillis(System.currentTimeMillis() - 34200000);
                 currtime = sdf.format(calendar.getTime());
                 Float closeva;
 
                 try {
                     JSONObject tempobj = jsonObject.getJSONObject(currtime);                   //change here
                     closeva = Float.parseFloat(tempobj.getString("4. close"));
-                    float reqdcloseva = Float.parseFloat(interact.readreqd(symbol));
-                    if (reqdcloseva < 0)
+                    if (interact.readreqd(symbol).equals("")==false)
                     {
-                        if (closeva <= (0-reqdcloseva))
-                            showNotification(context, closeva, symbol,"low",DATA);
-                    }
-                    else
-                    {
-                        if (closeva >= reqdcloseva)
-                            showNotification(context, closeva, symbol,"high",DATA);
+                        float reqdcloseva = Float.parseFloat(interact.readreqd(symbol));
+                        if (reqdcloseva < 0)
+                        {
+                            if (closeva <= (0 - reqdcloseva))
+                                showNotification(context, closeva, symbol, "low", DATA);
+                        } else
+                        {
+                            if (closeva >= reqdcloseva)
+                                showNotification(context, closeva, symbol, "high", DATA);
+                        }
                     }
                 }
                 catch(JSONException e)
                 {
-                    Log.e("createList", "Error in json");
+                    Log.e("Notifier", "Error in json");
+                    calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(System.currentTimeMillis() - 34200000 - 60000);
+                    currtime = sdf.format(calendar.getTime());
+                    try {
+                        JSONObject tempobj = jsonObject.getJSONObject(currtime);                   //change here
+                        closeva = Float.parseFloat(tempobj.getString("4. close"));
+                        float reqdcloseva = Float.parseFloat(interact.readreqd(symbol));
+                        if (reqdcloseva < 0)
+                        {
+                            if (closeva <= (0-reqdcloseva))
+                                showNotification(context, closeva, symbol,"low",DATA);
+                        }
+                        else
+                        {
+                            if (closeva >= reqdcloseva)
+                                showNotification(context, closeva, symbol,"high",DATA);
+                        }
+                    }
+                    catch (JSONException ef)
+                    {
+                        Log.e("Notifier", "Error in json final");
+                    }
                 }
                 catch (NullPointerException e)
                 {
-                    Log.e("createList","no reqd symbol");
+                    Log.e("Notifier","no reqd symbol");
                 }
 
             }
@@ -191,6 +222,12 @@ public class notifer extends WakefulBroadcastReceiver{
             int m = (int) ((new Date().getTime() / 1000L) % Integer.MAX_VALUE);
             mNotificationManager.notify(m, mBuilder.build());
         }
-
     }
+
+    /*File file = new File(Environment.getExternalStorageDirectory(), symbol);
+    FileWriter out = new FileWriter(file);
+                        out.write(DATA);
+                        out.close();
+
+                        Log.d("Notifier","File write successful");*/
 }

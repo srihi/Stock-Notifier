@@ -91,15 +91,13 @@ public class detailactivity extends AppCompatActivity {
                 {
                     price=closeva;
                 }
+                time.append("\n"+showtime);
+                close.append("\n"+closeva);
             }
             catch(JSONException e)
             {
                 Log.e("createList", "Error in json", e);
-                break;
             }
-
-            time.append("\n"+showtime);
-            close.append("\n"+closeva);
         }
 
         //createTable updateTable = new createTable();

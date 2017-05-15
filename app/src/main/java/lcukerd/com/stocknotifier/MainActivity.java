@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
@@ -31,6 +32,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,7 +49,7 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private LinearLayout stock_linearLayout,value_linearLayout,check_linearLayout;
+    private LinearLayout stock_linearLayout,value_linearLayout,check_linearLayout,reqd_linearLayout;
     private DbInteract interact;
     private Context context;
     private PendingIntent alarmIntent;
@@ -83,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         stock_linearLayout = (LinearLayout) findViewById(R.id.stock_linear);
         value_linearLayout = (LinearLayout) findViewById(R.id.value_linear);
         check_linearLayout = (LinearLayout) findViewById(R.id.check_linear);
+        reqd_linearLayout = (LinearLayout) findViewById(R.id.reqd_value_linear);
         createList lists = new createList();
         displaychecked=true;
         lists.execute(interact.readtable());
@@ -117,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         private URL url;
         private String DATA[] ;
         private Cursor cursortemp;
-        private Button stocks,value;
+        private Button stocks,value,reqd_value;
 
         protected String[][] doInBackground(Cursor[] cursors)
         {
@@ -194,6 +197,36 @@ public class MainActivity extends AppCompatActivity {
                     value.setTextColor(Color.rgb(0, 0, 0));
                     value_linearLayout.addView(value);
 
+                    String reqdv = interact.readreqd(stock_name);
+                    reqd_value = new Button(context);
+                    reqd_value.setGravity(View.TEXT_DIRECTION_LTR);
+                    if (reqdv!=null)
+                    {
+                        if (reqdv.equals("") == false)
+                        {
+                            Float reqdvf = Float.parseFloat(reqdv);
+                            if (reqdvf < 0)
+                            {
+                                reqdv = String.valueOf(0 - reqdvf);
+                                reqd_value.setText("< " + reqdv);
+                            } else
+                                reqd_value.setText("> " + reqdv);
+                        } else
+                            reqd_value.setText("Not Set");
+                    }
+                    else
+                        reqd_value.setText("Not Set");
+                    reqd_value.setTextSize(14);
+                    reqd_value.setBackgroundColor(Color.rgb(224, 224, 224));
+                    reqd_value.setTextColor(Color.rgb(0, 0, 0));
+                    reqd_linearLayout.addView(reqd_value);
+                    reqd_value.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showdialog(stock_name,stock_cur,v);
+                        }
+                    });
+
                     keepeye = new CheckBox(context);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                     params.setMargins(0,0,0,48);
@@ -231,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 catch (Exception e)
                 {
+                    Log.e("createList","display error",e);
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     builder.setMessage("Cannot connect to server!")
                             .setPositiveButton("ok", new DialogInterface.OnClickListener() {
@@ -310,6 +344,25 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (JSONException e) {
                 Log.e("createList", "Error in json");
+
+                try {
+                    String List = "Time Series (1min)";
+
+                    JSONObject jsonObject = new JSONObject(DATA[count]);
+                    jsonObject = jsonObject.getJSONObject(List);
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:00");
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(System.currentTimeMillis() - 34200000 -60000 );
+                    String currtime = sdf.format(calendar.getTime());
+                    Log.d("currtime",currtime);
+                    jsonObject = jsonObject.getJSONObject(currtime);
+
+                    return jsonObject.getString("4. close");
+                }
+                catch (JSONException ef)
+                {
+                    Log.e("createList", "Error in json final");
+                }
                 return null;
             }
         }
@@ -357,6 +410,81 @@ public class MainActivity extends AppCompatActivity {
                 }
             });*/
         }
+        private void showdialog(final String sym,final String price,final View reqd_view)
+        {
+            AlertDialog.Builder eventName = new AlertDialog.Builder(context,R.style.dialogStyle);
+            LayoutInflater inflater = (LayoutInflater)context.getSystemService (Context.LAYOUT_INFLATER_SERVICE);
+            View dialogb = inflater.inflate(R.layout.dialog_add_reqdva, null);
+            eventName.setView(dialogb);
+            final AlertDialog dialog = eventName.create();
+            dialog.show();
+
+            Button okay =(Button) dialog.findViewById(R.id.dokay),cancel = (Button) dialog.findViewById(R.id.dcancel);
+            final EditText reqdvalue = (EditText) dialog.findViewById(R.id.dreqdvalue);
+
+            TextView left = (TextView) dialog.findViewById(R.id.dleft) ,right = (TextView) dialog.findViewById(R.id.dright);
+            left.setText(">=");
+            right.setText("<=");
+
+            TextView symbolw = (TextView) dialog.findViewById(R.id.dsymbol);
+            symbolw.setText(sym);
+
+            TextView pricew = (TextView) dialog.findViewById(R.id.dprice);
+            if (price!=null)
+                pricew.setText(price);
+            else
+                pricew.setText("null");
+
+
+            final SwitchCompat chooser = (SwitchCompat) dialog.findViewById(R.id.dswitch);
+
+
+            String oldvalue = interact.readreqd(sym);
+            if ((oldvalue!=null)&&(oldvalue.equals("")==false))
+            {
+                float oldvaluef = Float.parseFloat(oldvalue);
+                if (oldvaluef<0)
+                {
+                    chooser.setChecked(true);
+                    oldvalue = String.valueOf(0-oldvaluef);
+                }
+                else
+                {
+                    chooser.setChecked(false);
+                }
+                reqdvalue.setText(oldvalue);
+            }
+
+            okay.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String reqd = reqdvalue.getText().toString();
+                    if (chooser.isChecked())
+                        if (reqd.equals("")==false)
+                            reqd = "-"+reqd;
+                    interact.addreqd(sym,reqd);
+                    if (reqd.equals("") == false)
+                    {
+                        Float reqdvf = Float.parseFloat(reqd);
+                        if (reqdvf < 0)
+                        {
+                            reqd = String.valueOf(0 - reqdvf);
+                            ((Button)reqd_view).setText("< " + reqd);
+                        } else
+                            ((Button)reqd_view).setText("> " + reqd);
+                    } else
+                        reqd_value.setText("Not Set");
+                    dialog.dismiss();
+                }
+            });
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+        }
+
     }
 
 

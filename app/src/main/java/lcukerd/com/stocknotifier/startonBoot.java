@@ -16,6 +16,7 @@ public class startonBoot extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
+            Log.d("Start on Boot","Called");
             DbInteract interact = new DbInteract(context);
             Intent callagain = new Intent(context,notifer.class);
             try {
